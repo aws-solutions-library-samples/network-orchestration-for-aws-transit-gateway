@@ -1,6 +1,6 @@
 {
   "name": "network-orchestrator-for-aws-transit-gateway",
-  "version": "3.3.27",
+  "version": "3.3.28",
   "description": "Network Orchestration for AWS Transit Gateway(SO0058)",
   "license": "Apache-2.0",
   "author": {
@@ -18,7 +18,7 @@
     "aws-amplify": "^6.16.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.30.4"
+    "react-router-dom": "^7.18.2"
   },
   "scripts": {
     "dev": "vite",
@@ -47,6 +47,9 @@
     "msw": {
       "cookie": "~0.7.2"
     },
-    "@xmldom/xmldom": "^0.9.10"
+    "@xmldom/xmldom": "^0.9.10",
+    "brace-expansion@2.x": "2.1.4",
+    "brace-expansion@5.x": "5.0.9",
+    "postcss": "8.5.23"
   }
 }

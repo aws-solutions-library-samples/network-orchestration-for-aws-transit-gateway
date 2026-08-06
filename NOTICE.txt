@@ -251,6 +251,7 @@ This software includes third party software subject to the following copyrights:
 @material/material-color-utilities under the Apache-2.0 license.
 @mswjs/cookies under the MIT license.
 @mswjs/interceptors under the MIT license.
+@napi-rs/lzma-linux-x64-gnu under the MIT license.
 @nodable/entities under the MIT license.
 @open-draft/deferred-promise under the MIT license.
 @open-draft/logger under the MIT license.
@@ -417,6 +418,7 @@ ansi-escapes under the MIT license.
 ansi-regex under the MIT license.
 ansi-styles under the MIT license.
 anymatch under the ISC license.
+anynum under the MIT license.
 arg under the MIT license.
 argparse under the Python-2.0 license.
 aria-query under the Apache-2.0 license.
@@ -661,6 +663,7 @@ is-string under the MIT license.
 is-symbol under the MIT license.
 is-typed-array under the MIT license.
 is-unicode-supported under the MIT license.
+is-unsafe under the MIT license.
 is-weakmap under the MIT license.
 is-weakset under the MIT license.
 is-wsl under the MIT license.
