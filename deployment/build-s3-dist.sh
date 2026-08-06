@@ -74,7 +74,10 @@ poetry run pip install dist/*
 headline "[Package] Solution lambda"
 rm -rf dist
 mkdir -p dist
-rsync -a .venv/lib/python3.12/site-packages/ ./dist/ --exclude '*dist-info*' --exclude '*.pyc' --exclude '*__pycache__*'
+# Resolve the venv's site-packages dir dynamically so packaging works regardless
+# of the Python minor version Poetry selects for the virtualenv.
+site_packages=$(.venv/bin/python -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+rsync -a "$site_packages/" ./dist/ --exclude '*dist-info*' --exclude '*.pyc' --exclude '*__pycache__*'
 cd dist
 zip -rq "$2.zip" .
 cp -R "$2.zip" $build_dist_dir

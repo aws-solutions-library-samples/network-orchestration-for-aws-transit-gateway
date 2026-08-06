@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.28] - 2026-08-06
+
+### Security
+
+- Bumped `react-router-dom` to ^7.18.2 to address [CVE-2026-53666](https://avd.aquasec.com/nvd/cve-2026-53666), [CVE-2026-53668](https://avd.aquasec.com/nvd/cve-2026-53668), and [CVE-2026-53669](https://avd.aquasec.com/nvd/cve-2026-53669)
+- Bumped `brace-expansion` to 2.1.4 and 5.0.9 to address [CVE-2026-14257](https://avd.aquasec.com/nvd/cve-2026-14257) and [CVE-2026-69152](https://avd.aquasec.com/nvd/cve-2026-69152)
+- Bumped `postcss` to 8.5.23 to address [CVE-2026-69153](https://avd.aquasec.com/nvd/cve-2026-69153) and [GHSA-r28c-9q8g-f849](https://github.com/advisories/GHSA-r28c-9q8g-f849)
+- Bumped `cryptography` to ^50.0.0 to address [CVE-2026-69247](https://avd.aquasec.com/nvd/cve-2026-69247)
+
 ## [3.3.27] - 2026-07-22
 
 ### Security
