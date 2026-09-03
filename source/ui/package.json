@@ -1,6 +1,6 @@
 {
   "name": "network-orchestrator-for-aws-transit-gateway",
-  "version": "3.3.28",
+  "version": "3.3.29",
   "description": "Network Orchestration for AWS Transit Gateway(SO0058)",
   "license": "Apache-2.0",
   "author": {
@@ -50,6 +50,7 @@
     "@xmldom/xmldom": "^0.9.10",
     "brace-expansion@2.x": "2.1.4",
     "brace-expansion@5.x": "5.0.9",
-    "postcss": "8.5.23"
+    "postcss": "8.5.23",
+    "nanoid": "^3.3.18"
   }
 }
