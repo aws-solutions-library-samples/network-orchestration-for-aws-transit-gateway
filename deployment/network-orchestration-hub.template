@@ -1768,7 +1768,7 @@ Resources:
                 {
                   "ErrorEquals": ["AlreadyConfiguredException"],
                   "ResultPath": null,
-                  "Next": "TGW VPC Attachment Already Configured"
+                  "Next": "Get TGW Attachment Propagations"
                 },
                 {
                   "ErrorEquals": ["States.ALL"],
