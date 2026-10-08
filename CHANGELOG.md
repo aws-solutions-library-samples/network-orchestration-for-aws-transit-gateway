@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.29] - 2026-10-08
+
+### Changed
+
+- Updated `README.md` and `CONTRIBUTING.md` to reflect the AWS Guidance model: build-from-source deployment into your own S3 bucket (no AWS-hosted pre-packaged templates or one-click deploy), plus the manual release/branching process
+
+### Fixed
+
+- Fixed Transit Gateway route table propagation being skipped when the VPC attachment was already associated. The state machine now continues to the propagation steps on `AlreadyConfiguredException` from the association step instead of terminating early ([#211](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/211))
+- Fixed Action Items and Dashboard consoles silently hiding pending items beyond the first DynamoDB Scan page. The AppSync resolvers now forward `limit`/`nextToken` and the web UI paginates until all pages are retrieved
+
+### Security
+
+- Bumped `nanoid` to ^3.3.18 in `source/ui` to address [CVE-2026-67213](https://avd.aquasec.com/nvd/cve-2026-67213) ([GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8))
+- Bumped `js-yaml` to 5.2.2 in `source/cognito-trigger` to address [CVE-2026-59870](https://avd.aquasec.com/nvd/cve-2026-59870) ([GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj)) and [GHSA-pm4m-ph32-ghv5](https://github.com/advisories/GHSA-pm4m-ph32-ghv5)
+- Bumped `browserslist` to ^4.28.7 in `source/cognito-trigger` to address [CVE-2026-73088](https://avd.aquasec.com/nvd/cve-2026-73088) and [CVE-2026-73089](https://avd.aquasec.com/nvd/cve-2026-73089)
+- Removed unused `decode-uri-component` dependency from `source/cognito-trigger` to address [CVE-2026-45822](https://avd.aquasec.com/nvd/cve-2026-45822) ([GHSA-vcc3-ghjq-m6fr](https://github.com/advisories/GHSA-vcc3-ghjq-m6fr))
+
 ## [3.3.28] - 2026-08-06
 
 ### Security

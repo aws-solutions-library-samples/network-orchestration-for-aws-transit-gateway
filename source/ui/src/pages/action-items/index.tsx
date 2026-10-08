@@ -24,19 +24,33 @@ const ActionItems = () => {
     const dashboardItemsRef = useRef<CommonItem[]>([])
 
     const groups = user?.groups || [];
+
+    // Paginate through a Scan-backed query until nextToken is exhausted.
+    // Keyed on nextToken (not items.length): a filtered Scan page can return
+    // zero matches while still carrying a nextToken for the next page.
+    const fetchAllItems = async (query: string, field: string): Promise<CommonItem[]> => {
+        const all: CommonItem[] = []
+        let nextToken: string | null = null
+        do {
+            const result: any = await client.graphql({ query, variables: { nextToken } })
+            // @ts-ignore
+            const page = result['data'][field]
+            all.push(...(page['items'] as CommonItem[]))
+            nextToken = page['nextToken'] ?? null
+        } while (nextToken != null)
+        return all
+    }
+
     const loadActionItems = async () => {
         setLoading(true)
-        const [actionResult, dashboardResult] = await Promise.all([
-            client.graphql({ query: getActionItemsFromTransitNetworkOrchestratorTables }),
-            client.graphql({ query: getDashboardItemsFromTransitNetworkOrchestratorTables })
+        const [items, dashboardItems] = await Promise.all([
+            fetchAllItems(getActionItemsFromTransitNetworkOrchestratorTables, 'getActionItemsFromTransitNetworkOrchestratorTables'),
+            fetchAllItems(getDashboardItemsFromTransitNetworkOrchestratorTables, 'getDashboardItemsFromTransitNetworkOrchestratorTables')
         ])
 
-        // @ts-ignore
-        const items = actionResult['data']['getActionItemsFromTransitNetworkOrchestratorTables']['items'] as CommonItem[]
         setActionItems(items)
         actionItemsRef.current = items
-        // @ts-ignore
-        dashboardItemsRef.current = dashboardResult['data']['getDashboardItemsFromTransitNetworkOrchestratorTables']['items'] as CommonItem[]
+        dashboardItemsRef.current = dashboardItems
 
         setLoading(false)
     }
