@@ -24,12 +24,23 @@ const Dashboard = () => {
     const getDashboardItems = async () => {
         setLoading(true)
         setDashboardItem([])
-        const result = await client.graphql({
-            query: getDashboardItemsFromTransitNetworkOrchestratorTables
-        })
+        // Paginate until nextToken is exhausted. Keyed on nextToken (not
+        // items.length): a filtered Scan page can return zero matches while
+        // still carrying a nextToken for the next page.
+        const all: CommonItem[] = []
+        let nextToken: string | null = null
+        do {
+            const result: any = await client.graphql({
+                query: getDashboardItemsFromTransitNetworkOrchestratorTables,
+                variables: { nextToken }
+            })
+            // @ts-ignore
+            const page = result['data']['getDashboardItemsFromTransitNetworkOrchestratorTables']
+            all.push(...(page['items'] as CommonItem[]))
+            nextToken = page['nextToken'] ?? null
+        } while (nextToken != null)
 
-        // @ts-ignore
-        setDashboardItem(result['data']['getDashboardItemsFromTransitNetworkOrchestratorTables']['items'] as CommonItem[]);
+        setDashboardItem(all);
         setLoading(false);
     }
 

@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.3.29] - 2026-09-03
+## [3.3.29] - 2026-10-08
+
+### Fixed
+
+- Fixed Transit Gateway route table propagation being skipped when the VPC attachment was already associated. The state machine now continues to the propagation steps on `AlreadyConfiguredException` from the association step instead of terminating early ([#211](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/211))
+- Fixed Action Items and Dashboard consoles silently hiding pending items beyond the first DynamoDB Scan page. The AppSync resolvers now forward `limit`/`nextToken` and the web UI paginates until all pages are retrieved
 
 ### Security
 
