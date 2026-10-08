@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.3.29] - 2026-10-08
 
+### Changed
+
+- Updated `README.md` and `CONTRIBUTING.md` to reflect the AWS Guidance model: build-from-source deployment into your own S3 bucket (no AWS-hosted pre-packaged templates or one-click deploy), plus the manual release/branching process
+
 ### Fixed
 
 - Fixed Transit Gateway route table propagation being skipped when the VPC attachment was already associated. The state machine now continues to the propagation steps on `AlreadyConfiguredException` from the association step instead of terminating early ([#211](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/211))
