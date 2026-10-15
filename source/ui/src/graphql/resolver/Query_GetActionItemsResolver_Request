@@ -8,6 +8,10 @@
 {
     "version" : "2017-02-28",
     "operation" : "Scan",
+    "limit": $util.defaultIfNull($ctx.args.limit, 100),
+    #if($ctx.args.nextToken)
+    "nextToken": "$ctx.args.nextToken",
+    #end
     "filter" : {
         "expression" : "Version=:version and #s IN (:s1,:s2,:s3)",
         "expressionValues" : {

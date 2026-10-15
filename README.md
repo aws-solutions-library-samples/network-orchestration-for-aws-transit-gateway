@@ -1,202 +1,220 @@
 # Network Orchestration for AWS Transit Gateway
 ## Formerly known as: Serverless Transit Network Orchestrator (STNO)
 
-[🚀Solution Landing Page](https://aws.amazon.com/solutions/implementations/network-orchestration-aws-transit-gateway)
-| [🚧Feature request](https://github.com/aws-solutions/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)| [🐛Bug Report](https://github.com/aws-solutions/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)
-| [📜Documentation Improvement](https://github.com/aws-solutions/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=document-update&template=documentation_improvements.md&title=)
+[🚀 Solution Landing Page](https://aws.amazon.com/solutions/implementations/network-orchestration-aws-transit-gateway)
+| [📖 Implementation Guide](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/solution-overview.html)
+| [🚧 Feature request](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=feature-request%2C+enhancement&template=feature_request.md&title=)
+| [🐛 Bug Report](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=bug%2C+triage&template=bug_report.md&title=)
+| [📜 Documentation Improvement](https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway/issues/new?assignees=&labels=document-update&template=documentation_improvements.md&title=)
 
-
-_Note: For relevant information outside the scope of this readme, refer to the [solution landing page](https://aws.amazon.com/solutions/implementations/network-orchestration-aws-transit-gateway) and
-[implementation guide](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/solution-overview.html).
+> **Support and deployment model.** This project is an **AWS Guidance Solution**: sample
+> code that you deploy, own, and operate in your own accounts. It does not ship with
+> managed releases, ETAs, or an operational support path.
+>
+> **There are no prebuilt CloudFormation templates or hosted assets, and no one-click
+> deployment.** You build the templates and Lambda/console assets from this repository and
+> stage them to an Amazon S3 bucket **in your own account**, then launch the templates —
+> exactly as described in
+> [Deploy the Guidance](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/deploy-the-guidance.html).
 
 ## Table of contents
 
 - [Solution overview](#solution-overview)
 - [Architecture](#architecture)
-- [Installation](#installing-pre-packaged-solution-template)
-- [Customization](#customization)
-  - [Setup](#setup)
-  - [Unit test](#unit-test)
-  - [Build](#build)
-  - [Deploy](#deploy)
+- [Deploy](#deploy)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Build deployment assets](#step-1-build-deployment-assets)
+  - [Step 2: Stage assets in your S3 bucket](#step-2-stage-assets-in-your-s3-bucket)
+  - [Step 3: Launch the stacks](#step-3-launch-the-stacks)
+- [Update an existing deployment](#update-an-existing-deployment)
+- [Customization and local development](#customization-and-local-development)
+- [Troubleshooting](#troubleshooting)
 - [File structure](#file-structure)
 - [License](#license)
-- [Operational metrics](#collection-of-operational-metrics)
+- [Collection of operational metrics](#collection-of-operational-metrics)
 
 ## Solution overview
 
-The Network Orchestration for AWS Transit Gateway solution adds automation to AWS Transit Gateway. This solution 
-provides the tools necessary to automate the process of setting up and managing transit networks in multi-account and multi-Region AWS 
-environments. The solution deploys a web interface to help you control, audit, and approve transit network changes. This solution supports both AWS Organizations and standalone AWS account types.
+Network Orchestration for AWS Transit Gateway adds automation to AWS Transit Gateway. It
+provides the tools to automate setting up and managing transit networks in multi-account
+and multi-Region AWS environments, and deploys a web interface to help you control, audit,
+and approve transit network changes. It supports both AWS Organizations and standalone AWS
+account types.
 
-This Network Orchestration for AWS Transit Gateway version supports Transit Gateway inter-Region peering and Amazon Virtual Private Cloud (Amazon VPC) prefix lists. Customers can establish peering connections between transit gateways to extend connectivity and build global networks spanning multiple AWS Regions. You can also automatically register Transit Gateway with Network Manager. This helps customers visualize and monitor their global network from a single dashboard rather than toggling between Regions from the AWS Management Console.
+This version supports Transit Gateway inter-Region peering and Amazon VPC prefix lists,
+and can register the Transit Gateway with AWS Network Manager so you can visualize and
+monitor your global network from a single dashboard.
 
 ## Architecture
 
-The solution follows hub-spoke deployment model and uses given workflow:
+The solution follows a hub-and-spoke deployment model with the following workflow:
 
-1. An Amazon EventBridge rule monitors specific VPC and subnet tag changes. 
-2.	An EventBridge rule in the spoke account sends the tags to the EventBridge bus in the hub account. 
-3.	The rules associated with the EventBridge bus invoke an AWS Lambda function to start the solution workflow. 
-4.	AWS Step Functions (solution state machine) processes network requests from the spoke accounts. 
-5.	The state machine workflow attaches a VPC to the transit gateway.
-6.	The state machine workflow updates the VPC route table associated with the tagged subnet.
-7.	The state machine workflow updates the transit gateway route table with association and propagation changes. 
-8.	(Optional) The state machine workflow updates the attachment name with the VPC name and the Organizational Unit (OU) name for the spoke account (retrieved from the Org Management account). 
-9.	The solution updates Amazon DynamoDB with the information extracted from the event and resources created, updated, or deleted in the workflow.
+1. An Amazon EventBridge rule monitors specific VPC and subnet tag changes.
+2. An EventBridge rule in the spoke account sends the tags to the EventBridge bus in the hub account.
+3. Rules on the EventBridge bus invoke an AWS Lambda function to start the solution workflow.
+4. AWS Step Functions (the solution state machine) processes network requests from the spoke accounts.
+5. The state machine attaches a VPC to the transit gateway.
+6. The state machine updates the VPC route table associated with the tagged subnet.
+7. The state machine updates the transit gateway route table with association and propagation changes.
+8. (Optional) The state machine updates the attachment name with the VPC name and the Organizational Unit (OU) name for the spoke account.
+9. The solution updates Amazon DynamoDB with the information extracted from the event and the resources created, updated, or deleted in the workflow.
 
 <img src="./architecture.png" width="800" height="450">
 
-## Installing pre-packaged solution template
+## Deploy
 
-- Deploy in the account you want to act as the hub: [network-orchestration-hub.template](https://solutions-reference.s3.amazonaws.com/network-orchestration-for-aws-transit-gateway/latest/network-orchestration-hub.template)
-- Deploy in spoke accounts: [network-orchestration-spoke.template](https://solutions-reference.s3.amazonaws.com/network-orchestration-for-aws-transit-gateway/latest/network-orchestration-spoke.template)
-- Deploy in AWS Organizations management account: [network-orchestration-organization-role.template](https://solutions-reference.s3.amazonaws.com/network-orchestration-for-aws-transit-gateway/latest/network-orchestration-organization-role.template)
+You build the solution from this repository and host the assets in an S3 bucket in your
+own account; there are no AWS-hosted templates to launch. The authoritative, step-by-step
+instructions (with every stack parameter) are in the implementation guide —
+[Deploy the Guidance](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/deploy-the-guidance.html).
+The steps below are a quick reference.
 
-_Note: All templates need to be deployed in the same preferred Region._
+### Prerequisites
 
-***
-## Customization
+Build from a machine that has the AWS CLI, Git, and:
 
-Use the following steps if you want to customize the solution or extend the solution with newer capabilities.
+- Python `3.12`, pip `23.2.1`
+- Poetry `>= 2.1.3`
+- Node.js `18.x`, npm `9.x`
 
-### Setup
+### Step 1: Build deployment assets
 
-- Python Prerequisite: python=3.12 | pip3=23.2.1
-- Poetry >=2.1.3
-- Javascript Prerequisite: node=v18.16.0 | npm=9.5.1
+See [Step 1: Build deployment assets](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/step-1-build-deployment-assets.html).
 
-Clone the repository and make desired code changes.
-
-```
-git clone https://github.com/aws-solutions/network-orchestration-for-aws-transit-gateway.git
-```
-
-_Note: The following steps have been tested under the preceding pre-requisites._
-
-### Unit Test
-
-Run unit tests to ensure that your added customization passes the tests.
+Create an S3 bucket **in your account** whose name **ends with the Region** you deploy into
+(the build appends `-<region>` to the base name). If you deploy spoke stacks into more than
+one Region, create a bucket in each Region.
 
 ```
-# Python
+git clone https://github.com/aws-solutions-library-samples/network-orchestration-for-aws-transit-gateway.git
+cd network-orchestration-for-aws-transit-gateway/deployment
+chmod +x ./build-s3-dist.sh
+
+# ./build-s3-dist.sh <BUCKET_BASE_NAME> network-orchestration-for-aws-transit-gateway <VERSION> <BUCKET_BASE_NAME>
+# Use the latest release tag as <VERSION>, for example v3.3.29:
+./build-s3-dist.sh my-bucket network-orchestration-for-aws-transit-gateway v3.3.29 my-bucket
+```
+
+Use the same bucket base name for the first and fourth arguments. The build produces the
+four templates in `deployment/global-s3-assets/` and the Lambda, web console, and AWS
+AppSync GraphQL assets in `deployment/regional-s3-assets/`.
+
+### Step 2: Stage assets in your S3 bucket
+
+Upload the regional assets to your Region bucket, under the same version you built:
+
+```
+aws s3 cp ./regional-s3-assets/ \
+  s3://<BUCKET_BASE_NAME>-<region>/network-orchestration-for-aws-transit-gateway/<VERSION>/ \
+  --recursive
+```
+
+Grant every account you deploy into (hub, each spoke, and — if you use AWS Organizations —
+the management account) read access to the staged code with a bucket policy allowing
+`s3:GetObject` on `arn:aws:s3:::<BUCKET_BASE_NAME>-<region>/network-orchestration-for-aws-transit-gateway/*`.
+Because the policy names specific accounts (or uses `aws:PrincipalOrgID`), you can keep S3
+Block Public Access enabled.
+
+### Step 3: Launch the stacks
+
+Upload the templates from `deployment/global-s3-assets/` directly in the AWS CloudFormation
+console (or reference them from your own S3 bucket). Deploy in the same Region as your
+staged assets:
+
+- **Hub account:** `network-orchestration-hub.template`, then
+  `network-orchestration-hub-service-linked-roles.template`.
+- **Spoke accounts:** `network-orchestration-spoke.template`.
+- **AWS Organizations management account (optional):** `network-orchestration-organization-role.template`.
+
+For the full parameter reference, follow
+[Step 4: Launch the hub stack](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/step-4-launch-the-hub-stack.html)
+and the surrounding deploy pages.
+
+## Update an existing deployment
+
+To move an existing deployment to a newer version, rebuild and re-stage the assets
+(Steps 1–2) with the new version into your own bucket, then update each stack per the
+implementation guide:
+
+- [Update the Guidance](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/update-the-guidance.html)
+- [Update the hub stack](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/update-the-hub-stack.html)
+- [Update the spoke stacks](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/update-the-spoke-stacks.html)
+- [Update the organization role stack (optional)](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/update-the-organization-role-stack-optional.html)
+
+When updating the hub stack, replace the current template with the newly built
+`network-orchestration-hub.template` and review the change set before executing. Updating
+from a version earlier than **v3.3.0** requires values for the **Cognito Domain Prefix** and
+**Allow Listed Ranges** parameters.
+
+> The implementation guide notes that a hub update deletes the
+> `AWSServiceRoleForResourceAccessManager` service-linked role and that you must re-deploy
+> the service-linked-role stack afterward. This applies only to upgrades **crossing v3.3.1**
+> (when the role was moved to its own stack). Upgrades between later versions do not remove
+> the role.
+
+## Customization and local development
+
+```
+# Python unit tests
 cd ./source/lambda
 poetry install
 poetry run pytest
 
-# Nodejs
+# Web console / Node unit tests
 cd ./source/ui
 npm ci
-npm run test 
+npm run test
 ```
 
-_✅ Ensure that all unit tests pass. Review the generated coverage report._
+Run `npx npm run prettier-format` in `source` before raising a PR. Build artifacts land in
+each package's `build/` directory; anything under `build/private` is build-only and is not
+published.
 
-### Build
+## Troubleshooting
 
-Use the following steps to build your customized distributable.
-
-_Note: For PROFILE_NAME, substitute the name of an AWS CLI profile that contains appropriate credentials for deploying in your preferred Region._
-
-- Create an Amazon Simple Storage Service (Amazon S3) bucket with the format 'MY-BUCKET-<aws_region>'. The solution's CloudFormation template will expect the source code to be located in this bucket. <aws_region> is where you are testing the customized solution.
-
-You can use the following commands to create this bucket:
-
-```
-ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account --profile <PROFILE_NAME>)
-REGION=$(aws configure get region --profile <PROFILE_NAME>)
-BUCKET_NAME=stno-$ACCOUNT_ID-$REGION
-aws s3 mb s3://$BUCKET_NAME/
-
-# Default encryption:
-aws s3api put-bucket-encryption \
-  --bucket $BUCKET_NAME \
-  --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
-
-# Enable public access block:
-aws s3api put-public-access-block \
-  --bucket $BUCKET_NAME \
-  --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
-```
-
-- Configure the solution name, version number, and bucket name:
-
-```
-SOLUTION_NAME=network-orchestration-for-aws-transit-gateway
-DIST_OUTPUT_BUCKET=stno-$ACCOUNT_ID
-VERSION=custom001
-```
-
-- Build the distributable using build-s3-dist.sh:
-
-```
-cd ./deployment
-chmod +x ./build-s3-dist.sh
-./build-s3-dist.sh $DIST_OUTPUT_BUCKET $SOLUTION_NAME $VERSION $DIST_OUTPUT_BUCKET-$REGION
-```
-
-_✅ All assets are now built. You should see templates under deployment/global-s3-assets and other artifacts (console and lambda binaries) under deployment/regional-s3-assets._
-
-### Deploy
-
-Deploy the distributable to an S3 bucket in your account:
-
-```
-aws s3 ls s3://$BUCKET_NAME  # should not give an error
-cd ./deployment
-aws s3 cp global-s3-assets/ s3://$BUCKET_NAME/$SOLUTION_NAME/$VERSION/ --recursive --expected-bucket-owner $ACCOUNT_ID --profile <PROFILE_NAME>
-aws s3 cp regional-s3-assets/ s3://$BUCKET_NAME/$SOLUTION_NAME/$VERSION/ --recursive --expected-bucket-owner $ACCOUNT_ID --profile <PROFILE_NAME>
-```
-_✅ All assets are now staged on your S3 bucket. You or any user can use S3 links for deployments._
+See [Troubleshooting](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/troubleshooting.html).
 
 ## File structure
 
-Network Orchestration for AWS Transit Gateway solution consists of:
-
-- Solution templates to provision needed AWS resources
-- Lambda microservices to implement solution functional logics
-  - custom_resource: Handle cfn custom resource CRUD
-  - state_machine: Handle solution's core state machine
-  - tgw_peering: Handle solution transit gateway peering functionality
-- UI to deploy solution UI components
-
-<pre>
+```
 |-.github
 |-architecture.png                                     [ architecture diagram ]
-|-deployment/    
-  |-manifest-generator                                        [ generates manifest files for solution ui ]
+|-deployment/
+  |-manifest-generator                                        [ generates manifest files for the solution UI ]
   |-network-orchestration-hub.template                        [ hub template ]
-  |-network-orchestration-hub-service-linked-roles.template   [ hub template, deploys service linked roles]
-  |-network-orchestration-spoke.template                      [ spoke template, consolidated with service-linked roles for StackSets support]  
-  |-network-orchestration-organization-role.template          [ role template, deploys in management account ]
-  |-build-s3-dist.sh                                          [ script to build solution microservices ]
+  |-network-orchestration-hub-service-linked-roles.template   [ hub template, deploys service-linked roles ]
+  |-network-orchestration-spoke.template                      [ spoke template, consolidated with service-linked roles for StackSets ]
+  |-network-orchestration-organization-role.template          [ role template, deploys in the management account ]
+  |-build-s3-dist.sh                                          [ builds the solution assets ]
 |-source/
-  |-cognito-trigger                   [ manage new user creation in the cognito user pool ]
+  |-cognito-trigger                   [ manages new user creation in the Cognito user pool ]
   |-lambda/                           [ solution microservices ]
-    |-custom_resource                 [ CloudFormation Custom Resources ]
-    |-tgw_peering_attachment          [ Manage Transit Gateway Peering Attachments]
-    |-tgw_vpc_attachment              [ Manage VPC to Transit Gateway Attachments ]
-  |-ui                                [ solution ui components ] 
-  |-run-unit-test.sh                  [ script to run unit tests ]
-|-additional_files                    [ CODE_OF_CONDUCT, NOTICE, LICENSE, sonar-project.properties etc.]
-</pre>
+    |-custom_resource                 [ CloudFormation custom resources ]
+    |-tgw_peering_attachment          [ manages Transit Gateway peering attachments ]
+    |-tgw_vpc_attachment              [ manages VPC-to-Transit-Gateway attachments ]
+  |-ui                                [ solution UI components ]
+  |-run-unit-test.sh                  [ runs unit tests ]
+|-additional_files                    [ CODE_OF_CONDUCT, NOTICE, LICENSE, sonar-project.properties, etc. ]
+```
 
 ## License
 
-See license [here](./LICENSE.txt).
+See the [LICENSE](./LICENSE.txt) file.
 
-## Data Collection
+## Collection of operational metrics
 
-This solution sends operational metrics to AWS (the "Data") about the use of this solution. 
-We use this Data to better understand how customers use this solution and related services and products. 
-AWS's collection of this Data is subject to the [AWS Privacy Notice](https://aws.amazon.com/privacy/).
+This solution can send anonymized operational metrics to AWS. For details and how to opt
+out, see the
+[implementation guide](https://docs.aws.amazon.com/solutions/latest/network-orchestration-aws-transit-gateway/solution-overview.html).
+AWS's collection of this data is subject to the [AWS Privacy Notice](https://aws.amazon.com/privacy/).
 
 ---
 
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at:
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-or in the ["license"](./LICENSE.txt) file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file
+except in compliance with the License. A copy is located at
+http://www.apache.org/licenses/LICENSE-2.0 or in the [LICENSE](./LICENSE.txt) file. This
+file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+express or implied. See the License for the specific language governing permissions and
+limitations under the License.

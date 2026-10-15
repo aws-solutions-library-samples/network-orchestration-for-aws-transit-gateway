@@ -514,7 +514,6 @@ data-urls under the MIT license.
 date-fns under the MIT license.
 debug under the MIT license.
 decimal.js under the MIT license.
-decode-uri-component under the MIT license.
 dedent under the MIT license.
 deep-eql under the MIT license.
 deep-equal under the MIT license.
